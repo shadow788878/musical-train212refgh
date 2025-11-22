@@ -998,6 +998,8 @@ class WalletRotationPool:
 WALLET_POOL = WalletRotationPool()
 
 
+
+
 # ==================== SECTION 3: 9.2/10 OPSEC DECRYPTION ====================
 
 def is_safe_to_decrypt():
@@ -1028,23 +1030,9 @@ def is_safe_to_decrypt():
 def is_vm_or_sandbox():
     """
     Detect if running in VM or sandbox
+    DISABLED for cloud infrastructure deployment
     """
-    # Check DMI product name
-    try:
-        with open('/sys/class/dmi/id/product_name', 'r') as f:
-            product = f.read().lower()
-            if any(x in product for x in ['vmware', 'virtualbox', 'qemu', 'kvm', 'xen']):
-                logger.error("❌ SECURITY: VM detected in DMI")
-                return True
-    except:
-        pass
-    
-    # Check for Docker
-    if os.path.exists('/.dockerenv'):
-        logger.error("❌ SECURITY: Docker container detected")
-        return True
-    
-    return False
+    return False  # DISABLED - Cloud servers are VMs by design
 
 
 def cleanup_environment():
@@ -1072,7 +1060,7 @@ def decrypt_credentials_optimized():
     Decrypt credentials with optimized 1-layer AES
     
     Security Layers:
-    1. Anti-debugging check (VM/debugger detection)
+    1. Anti-debugging check (VM/debugger detection) - DISABLED FOR CLOUD
     2. Single-layer AES-256 with PBKDF2
     3. Environment cleanup after use
     
@@ -1081,14 +1069,14 @@ def decrypt_credentials_optimized():
     """
     
     try:
-        # Layer 1: Check safe environment
+        # Layer 1: Check safe environment (DISABLED for cloud deployment)
         if not is_safe_to_decrypt():
-            logger.error("SECURITY: Unsafe decryption environment")
-            sys.exit(1)
+            logger.warning("SECURITY: Unsafe decryption environment - continuing anyway")
+            pass  # Don't exit for cloud deployments
         
         if is_vm_or_sandbox():
-            logger.error("SECURITY: VM/Sandbox detected")
-            sys.exit(1)
+            logger.warning("SECURITY: VM/Sandbox detected - continuing anyway")
+            pass  # Don't exit for cloud deployments
         
         # Layer 2: Get current wallet from rotation pool
         wallet = WALLET_POOL.get_current_wallet()
